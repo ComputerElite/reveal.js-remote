@@ -168,6 +168,10 @@ const init = (reveal) => {
 
     const msgInit = (data) => {
         if (pluginConfig.remote) {
+            // post url to mfs for showing in the selection ui
+            fetch(`/api/v1/reveal/remote/${location.pathname.split("/")[1]}`, {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({
+                    remoteUrl: data.remoteUrl
+                })})
             reveal.addKeyBinding({keyCode: 82, key: "R", description: "Show remote control url"}, () => {
                 togglePopup(data.remoteImage, data.remoteUrl);
             });
