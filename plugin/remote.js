@@ -94,6 +94,8 @@ const init = (reveal) => {
             on("autoslide", reveal.toggleAutoSlide);
         }
 
+
+        createButton();
         createPopup();
 
         console.info("Remote: Starting connection");
@@ -128,6 +130,51 @@ const init = (reveal) => {
         }
     }
 
+
+    let timer;
+
+    function startMeasureButtonLongPress() {
+        timer = setTimeout(() => {
+            onButtonPress(true)
+        }, 500)
+    }
+    function stopMeasureButtonLongPress() {
+        clearTimeout(timer)
+    }
+
+    function onButtonPress(longpress = false) {
+        if(longpress) {
+            if(document.fullscreenElement != null) {
+                document.exitFullscreen();
+            } else {
+                Reveal.getPlugin('RevealRemote').showRemoteUrl();
+            }
+        } else {
+            if(document.fullscreenElement == null) {
+                document.documentElement.requestFullscreen();
+            }
+            Reveal.getPlugin('RevealRemote').showMfsUrl();
+        }
+    }
+
+    function createButton() {
+        const aside = document.createElement("aside");
+        aside.className = "reveal controls";
+        aside.style.display = "block";
+        const button = document.createElement("button");
+        aside.appendChild(button);
+        button.className = "reveal enabled";
+        button.style = "bottom: 3.2em; right: 3.2em; width: 3.6em; height: 3.6em;"
+        button.onclick = () => {
+            onButtonPress();
+            button.style.opacity = 0.3;
+        }
+        button.onmousedown = () => startMeasureButtonLongPress();
+        button.onmouseup = () => stopMeasureButtonLongPress();
+        button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg"  width="3.6em"  height="3.6em"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-qrcode"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" /><path d="M7 17l0 .01" /><path d="M14 4m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" /><path d="M7 7l0 .01" /><path d="M4 14m0 1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z" /><path d="M17 7l0 .01" /><path d="M14 14l3 0" /><path d="M20 14l0 .01" /><path d="M14 14l0 3" /><path d="M14 20l3 0" /><path d="M17 17l3 0" /><path d="M20 17l0 3" /></svg>`
+        document.getElementsByClassName("reveal")[0].appendChild(aside)
+    }
+
     function createPopup() {
         const body = document.documentElement;
         const inner = document.createElement("div");
@@ -157,25 +204,27 @@ const init = (reveal) => {
         inner.style.border = "5px solid white";
         inner.style.borderRadius = "5px";
         inner.style.margin = "100px"
-        text.style.fontSize = "14px";
-        text.style.color = "black"
+        text.style.fontSize = "1em";
+        text.className = "reveal"
+        text.style.color = "#AAAAAA";
+        text.style.marginBottom = "5px";
         inner.style.textAlign = "center";
 
         div.appendChild(inner);
 
         inner.appendChild(link);
+        inner.appendChild(text)
         link.appendChild(image);
-        //link.appendChild(text)
         body.appendChild(div);
     }
 
-    const togglePopup = (imageData, url) => {
+    const togglePopup = (imageData, url, text_content) => {
         if (link.href === url && div.style.display !== "none") {
             div.style.display = "none";
         } else {
             image.src = imageData;
             link.href = url;
-            text.innerText = url;
+            text.innerText = text_content;
             div.style.display = "flex";
         }
     }
@@ -190,13 +239,13 @@ const init = (reveal) => {
                     remoteUrl: data.remoteUrl
                 })})
             reveal.addKeyBinding({keyCode: 82, key: "R", description: "Show remote control url"}, () => {
-                togglePopup(data.remoteImage, data.remoteUrl);
+                togglePopup(data.remoteImage, data.remoteUrl, "Remote");
             });
             showRemoteUrlCallback = () => {
-                togglePopup(data.remoteImage, data.remoteUrl);
+                togglePopup(data.remoteImage, data.remoteUrl, "direct remote");
             }
             showMfsUrlCallback = () => {
-                togglePopup(data.mfsImage, getHost() + "/reveal")
+                togglePopup(data.mfsImage, getHost() + "/reveal", "mfs remotes")
             }
 
             reveal.addEventListener("overviewshown", sendRemoteState);
@@ -214,7 +263,7 @@ const init = (reveal) => {
 
         if (pluginConfig.multiplex) {
             reveal.addKeyBinding({keyCode: 65, key: "A", description: "Show share url"}, function () {
-                togglePopup(data.multiplexImage, data.multiplexUrl);
+                togglePopup(data.multiplexImage, data.multiplexUrl, "Audience");
             });
 
             window.addEventListener("load", sendMultiplexState);
