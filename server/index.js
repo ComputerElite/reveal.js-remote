@@ -45,6 +45,7 @@ const initPresenter = (socket, initialData, baseUrl, hashsecret) => {
     socket.join("presenter-" + remoteId);
 
     const remoteUrl = baseUrl + "_remote/ui/?" + remoteId;
+    const mfsUrl = baseUrl + "reveal";
     const multiplexUrl = initialData.shareUrl.replace(/#.*/, "") +
         (initialData.shareUrl.indexOf("?") > 0 ? "&" : "?") + "remoteMultiplexId=" + multiplexId;
 
@@ -53,7 +54,7 @@ const initPresenter = (socket, initialData, baseUrl, hashsecret) => {
         delete multiplexes[multiplexId];
     });
 
-    Promise.all([(async (content) => toDataURL(content, {errorCorrectionLevel: 'Q'}))(remoteUrl), (async (content) => toDataURL(content, {errorCorrectionLevel: 'Q'}))(multiplexUrl)])
+    Promise.all([(async (content) => toDataURL(content, {errorCorrectionLevel: 'Q'}))(remoteUrl), (async (content) => toDataURL(content, {errorCorrectionLevel: 'Q'}))(multiplexUrl), (async (content) => toDataURL(content, {errorCorrectionLevel: 'Q'}))(mfsUrl)])
         .then((base64) =>
             socket.emit("init", {
                 remoteUrl,
@@ -62,7 +63,8 @@ const initPresenter = (socket, initialData, baseUrl, hashsecret) => {
                 remoteId,
                 multiplexId,
                 remoteImage: base64[0],
-                multiplexImage: base64[1]
+                multiplexImage: base64[1],
+                mfsImage: base64[2],
             }));
 
     socket.on("state_changed", function (data) {

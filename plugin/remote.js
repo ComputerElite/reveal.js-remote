@@ -1,10 +1,21 @@
 import {io} from "../../socket.io/socket.io.esm.min.js";
 
+let showRemoteUrlCallback;
+let showMfsUrlCallback;
+
+const showRemoteUrl = () => {
+    showRemoteUrlCallback()
+}
+const showMfsUrl = () => {
+    showMfsUrlCallback()
+}
+
 const init = (reveal) => {
     let socket;
     let link;
     let image;
     let div;
+    let text;
 
     const listeners = {};
 
@@ -118,12 +129,13 @@ const init = (reveal) => {
     }
 
     function createPopup() {
-        const body = document.getElementsByTagName("body")[0];
+        const body = document.documentElement;
         const inner = document.createElement("div");
 
         link = document.createElement("a");
         image = document.createElement("img");
         div = document.createElement("div");
+        text = document.createElement("p")
 
         div.class = "remote-qr-overlay";
         div.style.display = "none";
@@ -133,26 +145,27 @@ const init = (reveal) => {
         div.style.bottom = '0';
         div.style.right = '0';
         div.style.zIndex = '1000';
-        div.style.alignItems = "center";
-        div.style.justifyContent = "center";
-
-        inner.style.padding = "50px";
-        inner.style.borderRadius = "50px";
-        inner.style.textAlign = "center";
-        inner.style.background = "rgba(255, 255, 255, .9)";
+        div.style.alignItems = "end";
+        div.style.justifyContent = "end";
+        div.style.width = "100vw"
+        div.style.height = "100vh";
+        div.onclick = () => div.style.display = "none";
+        div.style.backgroundColor = "#00000066"
 
         link.target = "_blank";
-        link.style.fontSize = "200%";
-
-        image.style.border = "20px solid white";
+        inner.style.backgroundColor = "white"
+        inner.style.border = "5px solid white";
+        inner.style.borderRadius = "5px";
+        inner.style.margin = "100px"
+        text.style.fontSize = "14px";
+        text.style.color = "black"
+        inner.style.textAlign = "center";
 
         div.appendChild(inner);
 
         inner.appendChild(link);
         link.appendChild(image);
-        link.appendChild(document.createElement("br"));
-        link.appendChild(document.createElement("br"));
-        link.appendChild(document.createTextNode("Or share this link"));
+        //link.appendChild(text)
         body.appendChild(div);
     }
 
@@ -162,8 +175,12 @@ const init = (reveal) => {
         } else {
             image.src = imageData;
             link.href = url;
+            text.innerText = url;
             div.style.display = "flex";
         }
+    }
+    const getHost = () => {
+        return location.href.substring(0, location.href.indexOf(location.pathname))
     }
 
     const msgInit = (data) => {
@@ -175,6 +192,12 @@ const init = (reveal) => {
             reveal.addKeyBinding({keyCode: 82, key: "R", description: "Show remote control url"}, () => {
                 togglePopup(data.remoteImage, data.remoteUrl);
             });
+            showRemoteUrlCallback = () => {
+                togglePopup(data.remoteImage, data.remoteUrl);
+            }
+            showMfsUrlCallback = () => {
+                togglePopup(data.mfsImage, getHost() + "/reveal")
+            }
 
             reveal.addEventListener("overviewshown", sendRemoteState);
             reveal.addEventListener("overviewhidden", sendRemoteState);
@@ -253,6 +276,7 @@ const init = (reveal) => {
     }
 
     function msgClientConnected() {
+        console.log("Connected client")
         div.style.display = "none";
     }
 
@@ -285,5 +309,7 @@ const init = (reveal) => {
 
 export default () => ({
     id: 'RevealRemote',
-    init: init
+    init: init,
+    showRemoteUrl: showRemoteUrl,
+    showMfsUrl: showMfsUrl
 });
