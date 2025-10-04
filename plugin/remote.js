@@ -24,7 +24,8 @@ const init = (reveal) => {
         shareUrl: window.location.href,
         path: "/socket.io",
         multiplex: true,
-        remote: true
+        remote: true,
+        extraControl: true
     };
     let config;
 
@@ -95,7 +96,7 @@ const init = (reveal) => {
         }
 
 
-        createButton();
+        if(pluginConfig.extraControl) createButton();
         createPopup();
 
         console.info("Remote: Starting connection");
