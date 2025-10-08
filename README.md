@@ -1,8 +1,20 @@
 # reveal.js remote
 
-## Demo
+## This fork
+This fork adds interoperability with [MappedFolderServer](https://github.com/ComputerElite/MappedFolderServer) (MFS).
 
-A [demo](https://presentations.jowisoftware.de/demo/) is available here.
+Per default presentation instances are reported back to `/api/v1/reveal/remote` of the domain. This was MFS can display all presentation instances of a user to them.
+
+Furthermore the qr code popup has been updates to look a bit cleaner.
+
+A qr code button is added to the reveal controls per default which behaves as follows:
+
+- Click => Fullscreen and show qr code to `/reveal` (MFS reveal presentation page)
+- Long press (500ms) =>
+  - If fullscreen, disable fullscreen.
+  - If not fullscreen, show remote qr button.
+
+This behavior has been chosen as per MFS goals.
 
 ## Using the tool
 
@@ -76,6 +88,9 @@ Include the following code block into your presentation's configuration to fine-
 
             // enable multiplexing
             //multiplex: true,
+            
+            // Add qrcode button to controls
+            //extraControl: true
 
             // server address
             // change this if you do not serve the presentation from the same domain
